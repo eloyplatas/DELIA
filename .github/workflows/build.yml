@@ -51,8 +51,7 @@ jobs:
       - name: Empaquetar
         shell: bash
         run: |
-          VER="${GITHUB_REF_NAME}"
-          case "$VER" in v*) ;; *) VER="dev" ;; esac
+          VER="v$(sed -n 's/^project(Delia VERSION \([0-9.]*\)).*/\1/p' CMakeLists.txt)"
           PKG="Delia-${VER}-${{ matrix.name }}"
           mkdir -p "$PKG"
           cp -R build/Delia_artefacts/Release/VST3/Delia.vst3 "$PKG/"
@@ -66,8 +65,9 @@ jobs:
           name: ${{ env.PKG }}
           path: ${{ env.PKG }}.zip
 
+  # Publica una version al subir una etiqueta v*, o un commit a main cuyo mensaje contenga [release]
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || (github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[release]'))
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -76,10 +76,14 @@ jobs:
         with:
           path: dist
           merge-multiple: true
+      - name: Version
+        run: echo "VER=v$(sed -n 's/^project(Delia VERSION \([0-9.]*\)).*/\1/p' CMakeLists.txt)" >> "$GITHUB_ENV"
       - name: Publicar versión
         uses: softprops/action-gh-release@v2
         with:
-          name: Delia ${{ github.ref_name }}
+          tag_name: ${{ env.VER }}
+          target_commitish: ${{ github.sha }}
+          name: Delia ${{ env.VER }}
           body_path: docs/RELEASE_NOTES.md
           files: |
             dist/*.zip
