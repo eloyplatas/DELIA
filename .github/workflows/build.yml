@@ -32,7 +32,7 @@ jobs:
       - name: Configurar
         shell: bash
         run: |
-          if [ "$RUNNER_OS" = "Linux" ]; then GEN="-G Ninja"; else GEN=""; fi
+          if [ "$RUNNER_OS" = "Linux" ]; then GEN="-G Ninja"; elif [ "$RUNNER_OS" = "macOS" ]; then GEN="-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64"; else GEN=""; fi
           cmake -S . -B build $GEN -DCMAKE_BUILD_TYPE=Release -DDELIA_BUILD_TESTS=ON
 
       - name: Compilar
@@ -44,9 +44,12 @@ jobs:
           T=build/DeliaTest_artefacts/Release/DeliaTest
           if [ -f "$T.exe" ]; then "$T.exe"; else "$T"; fi
 
-      - name: Firma ad hoc (macOS)
+      - name: Firma ad hoc y comprobación universal (macOS)
         if: runner.os == 'macOS'
-        run: codesign --force --deep --sign - build/Delia_artefacts/Release/VST3/Delia.vst3
+        run: |
+          codesign --force --deep --sign - build/Delia_artefacts/Release/VST3/Delia.vst3
+          lipo -archs build/Delia_artefacts/Release/VST3/Delia.vst3/Contents/MacOS/Delia
+          lipo -archs build/Delia_artefacts/Release/VST3/Delia.vst3/Contents/MacOS/Delia | grep -q x86_64
 
       - name: Empaquetar
         shell: bash

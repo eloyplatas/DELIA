@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 3.22)
+# Antes de project(): si no, no tienen efecto
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "")
+set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "")
 project(Delia VERSION 0.2.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "")
-set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "")
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/JUCE/CMakeLists.txt")
   add_subdirectory(JUCE)
