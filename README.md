@@ -1,5 +1,8 @@
 # Delia
 
+<img width="1228" height="805" alt="Captura de pantalla_2026-11-17_16-37-22" src="https://github.com/user-attachments/assets/c4ac4954-27db-4af1-bcf7-1713cdf2d7a7" />
+
+
 Taller de cinta en un plugin VST3: hace música con el procedimiento de trabajo de Delia Derbyshire en el BBC Radiophonic Workshop, usando ficheros de audio en lugar de cinta.
 
 Versión 0.2.0 · Eloy Platas · licencia GPLv3
