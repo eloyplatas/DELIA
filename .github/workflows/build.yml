@@ -1,0 +1,86 @@
+name: Compilar Delia
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-22.04,   name: linux-x86_64 }
+          - { os: windows-latest, name: windows-x64 }
+          - { os: macos-14,       name: macos-universal }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependencias (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libasound2-dev libx11-dev libxrandr-dev libxinerama-dev \
+            libxcursor-dev libxext-dev libxcomposite-dev libfreetype6-dev libfontconfig1-dev libgl1-mesa-dev
+
+      - name: Configurar
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then GEN="-G Ninja"; else GEN=""; fi
+          cmake -S . -B build $GEN -DCMAKE_BUILD_TYPE=Release -DDELIA_BUILD_TESTS=ON
+
+      - name: Compilar
+        run: cmake --build build --config Release --parallel 4
+
+      - name: Prueba del motor
+        shell: bash
+        run: |
+          T=build/DeliaTest_artefacts/Release/DeliaTest
+          if [ -f "$T.exe" ]; then "$T.exe"; else "$T"; fi
+
+      - name: Firma ad hoc (macOS)
+        if: runner.os == 'macOS'
+        run: codesign --force --deep --sign - build/Delia_artefacts/Release/VST3/Delia.vst3
+
+      - name: Empaquetar
+        shell: bash
+        run: |
+          VER="${GITHUB_REF_NAME}"
+          case "$VER" in v*) ;; *) VER="dev" ;; esac
+          PKG="Delia-${VER}-${{ matrix.name }}"
+          mkdir -p "$PKG"
+          cp -R build/Delia_artefacts/Release/VST3/Delia.vst3 "$PKG/"
+          cp README.md LICENSE "$PKG/"
+          cp docs/*.pdf "$PKG/" 2>/dev/null || true
+          cmake -E tar cf "$PKG.zip" --format=zip "$PKG"
+          echo "PKG=$PKG" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PKG }}
+          path: ${{ env.PKG }}.zip
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publicar versión
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Delia ${{ github.ref_name }}
+          body_path: docs/RELEASE_NOTES.md
+          files: |
+            dist/*.zip
+            docs/*.pdf
