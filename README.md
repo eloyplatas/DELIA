@@ -2,7 +2,9 @@
 
 Taller de cinta en un plugin VST3: hace música con el procedimiento de trabajo de Delia Derbyshire en el BBC Radiophonic Workshop, usando ficheros de audio en lugar de cinta.
 
-Versión 0.1.0 · Eloy Platas · licencia GPLv3
+Versión 0.2.0 · Eloy Platas · licencia GPLv3
+
+Manual completo en PDF: [castellano](docs/Delia_Manual_ES.pdf) · [English](docs/Delia_Manual_EN.pdf)
 
 ## Qué hace
 
@@ -13,9 +15,17 @@ Versión 0.1.0 · Eloy Platas · licencia GPLv3
 
 Además: laboratorio (oscilador de prueba, ruido blanco, wobbulator), tratamientos (eco de cinta de tres cabezales, placa, filtros pasivos, modulador en anillo) y un cajón con doce osciladores y ocho puertas para síntesis aditiva y resíntesis de parciales.
 
-## Instalación (Linux)
+## Descarga e instalación
 
-Copia `Delia.vst3` a `~/.vst3/` y vuelve a escanear en REAPER. El binario incluido necesita glibc 2.38 o posterior (Ubuntu 24.04, Debian 13, Fedora 39 o más recientes). En sistemas más antiguos, compílalo.
+Las versiones compiladas están en la página [Releases](https://github.com/eloyplatas/DELIA/releases): un zip por sistema con `Delia.vst3`, este README, la licencia y los manuales.
+
+| Sistema | Dónde copiar `Delia.vst3` |
+| --- | --- |
+| Linux x86_64 (glibc 2.35 o posterior) | `~/.vst3/` |
+| Windows 64 bits | `C:\Program Files\Common Files\VST3\` |
+| macOS (Intel y Apple Silicon) | `~/Library/Audio/Plug-Ins/VST3/` |
+
+En macOS el plugin está firmado ad hoc pero no notarizado; si el sistema lo bloquea: `xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/Delia.vst3`.
 
 ## Compilar
 
@@ -30,14 +40,16 @@ CMake descarga JUCE 8.0.10 si no hay una carpeta `JUCE/` junto al proyecto. El r
 
 - `-DDELIA_BUILD_TESTS=ON` compila `DeliaTest`, la prueba del motor sin interfaz.
 - `-DDELIA_BUILD_SHOT=ON` compila `DeliaShot`, que guarda capturas de la interfaz y comprueba volcado y estado.
-- `.github/workflows/build.yml` compila en Linux, Windows (VST3) y macOS (VST3 y AU) con GitHub Actions.
+- `.github/workflows/build.yml` compila los VST3 de Linux, Windows y macOS con GitHub Actions; al subir una etiqueta `v*` publica una versión con los zips y los manuales.
+- `docs/manual/build_manual.py` genera los manuales en PDF (necesita ReportLab y las fuentes DejaVu).
 
 ## Uso paso a paso
 
 ### Carretes y Makeup
 
 - **CARGAR...** o arrastrar ficheros a la ventana (WAV, AIFF, FLAC, OGG). Los carretes son mono; con **ESTÉREO** encendido, los que cargues o vuelques a partir de ese momento conservan los dos canales.
-- En la forma de onda, arrastra los bordes de la región. Los dos puntos de arriba son los fundidos de entrada y de salida: un fundido de entrada largo quita el ataque.
+- **Punto de inicio de lectura:** arrastra el borde izquierdo de la forma de onda, escribe el tiempo en **INICIO s** o haz doble clic donde quieras empezar. **FIN s** fija el final. Los dos puntos de arriba son los fundidos de entrada y de salida: un fundido de entrada largo quita el ataque.
+- **Preescucha:** **▶ ESCUCHAR** reproduce la región desde el inicio, a velocidad original y con los fundidos (así suena la nota 0). Un clic en la regla inferior de la forma de onda escucha el fichero desde ese punto; arrastrar recorre el sonido.
 - **RAÍZ Hz** es la altura del sonido original. **DETECTAR** la calcula; en sonidos inarmónicos escríbela a mano.
 - **ESCALA**: temperada, pitagórica, mesotónica de cuarto de coma o libre. La libre admite razones (`1 9/8 5/4 3/2 5/3`) o un fichero Scala (`.SCL...`).
 - **DESDE / HASTA** fijan cuántas notas por debajo y por encima de la raíz aparecen en el teclado.
@@ -108,7 +120,8 @@ El proyecto guarda tiras, escalas, ajustes y la lista de carretes con su ruta. L
 - La interfaz tiene tamaño fijo (1240 × 820, más el cajón).
 - Las rutas de los carretes son absolutas.
 - El volcado en tiempo real admite hasta 3 minutos por toma.
-- Windows y macOS se compilan con el flujo de GitHub Actions; no se han probado.
+- Las versiones de Windows y macOS se compilan en GitHub Actions y no se han probado en un anfitrión real.
+- La interfaz está solo en castellano.
 
 ## Licencia y créditos
 
